@@ -2,55 +2,36 @@
 
 > **Monetra** es una aplicación de educación y gestión financiera personal automatizada mediante Inteligencia Artificial, diseñada específicamente para jóvenes de 18 a 28 años (estudiantes universitarios y recién egresados) en Colombia. Con una interfaz moderna, visual y dinámica tipo Fintech, busca transformar la relación de la juventud con su dinero.
 
----
-
-## 👥 Equipo de Desarrollo
-
-Monetra es desarrollado por un equipo multidisciplinario comprometido con la creación de soluciones tecnológicas innovadoras para la educación financiera y la gestión inteligente de recursos personales.
-
-| Integrante | Rol |
-|------------|------|
-| **Miguel Angel Escobar** | Product Owner / Scrum Master |
-| **Alejandro Guerrero Cano** | Desarrollador Frontend |
-| **Néstor David Heredia** | Desarrollador Backend / IA |
-| **Oscar David Cuaical** | Desarrollador Backend / DevOps |
-| **Jhoimar Silva Torres** | Desarrollador Backend |
-| **Juan Manuel Vargas Muñoz** | Desarrollador Frontend |
-| **Yissy Katherine Posso Perea** | Desarrolladora Frontend |
-
-### 📊 Distribución del Equipo
-
-- 🎯 **Gestión del Proyecto:** 1 integrante
-- 💻 **Desarrollo Frontend:** 3 integrantes
-- ⚙️ **Desarrollo Backend:** 3 integrantes
-- 🤖 **Inteligencia Artificial:** 1 integrante
-- 🚀 **DevOps:** 1 integrante
-
 > Este proyecto fue desarrollado aplicando metodologías ágiles, buenas prácticas de ingeniería de software y tecnologías modernas para ofrecer una experiencia financiera inteligente, segura y escalable.
 
 ## 🚀 Estado Actual del Proyecto: Fase de Infraestructura y Lógica Core
-El proyecto ha completado con éxito la **configuración inicial, arquitectura del monorepo y el motor lógico de autenticación**. 
-* **Frontend:** El enrutamiento dinámico está protegido mediante guardas de seguridad en el cliente. Cuenta con un sistema interactivo de Login (tradicional y social con Google), Registro estructurado y recuperación de contraseña, todo maquetado con una estética *Premium Dark Mode*.
-* **Backend:** Servidor base en FastAPI levantado con políticas CORS integradas y blindado para interactuar exclusivamente con el entorno de desarrollo local del cliente.
+
+El proyecto ha completado con éxito la **configuración inicial, arquitectura del monorepo y el motor lógico de autenticación**.
+
+- **Frontend:** El enrutamiento dinámico está protegido mediante guardas de seguridad en el cliente. Cuenta con un sistema interactivo de Login (tradicional y social con Google), Registro estructurado y recuperación de contraseña, todo maquetado con una estética _Premium Dark Mode_.
+- **Backend:** Servidor base en FastAPI levantado con políticas CORS integradas y blindado para interactuar exclusivamente con el entorno de desarrollo local del cliente.
 
 ---
 
 ## 🛠️ Stack Tecnológico Seleccionado
 
 ### Cliente (Frontend)
-* **React 18 & Vite:** Entorno de desarrollo ultra rápido y modular.
-* **Tailwind CSS v4:** Estilizado moderno, responsivo y de alto impacto visual mediante utilidades nativas.
-* **React Router DOM v6:** Gestión de enrutamiento declarativo y protección de accesos.
-* **Firebase SDK v10:** Integración nativa con servicios en la nube.
+
+- **React 18 & Vite:** Entorno de desarrollo ultra rápido y modular.
+- **Tailwind CSS v4:** Estilizado moderno, responsivo y de alto impacto visual mediante utilidades nativas.
+- **React Router DOM v6:** Gestión de enrutamiento declarativo y protección de accesos.
+- **Firebase SDK v10:** Integración nativa con servicios en la nube.
 
 ### Servicios e IA (Backend-API)
-* **Python 3.11+ & FastAPI:** Framework web asíncrono de alto rendimiento para el procesamiento de peticiones.
-* **Google Gemini SDK (google-genai):** Integración nativa para la orquestación del LLM **Gemini 2.5 Flash**.
-* **Uvicorn:** Servidor ASGI rápido para producción y desarrollo local.
+
+- **Python 3.11+ & FastAPI:** Framework web asíncrono de alto rendimiento para el procesamiento de peticiones.
+- **Google Gemini SDK (google-genai):** Integración nativa para la orquestación del LLM **Gemini 2.5 Flash**.
+- **Uvicorn:** Servidor ASGI rápido para producción y desarrollo local.
 
 ### Persistencia y Seguridad (BaaS)
-* **Firebase Authentication:** Gestión de sesiones segura en tiempo real (OAuth 2.0 con Google y Auth tradicional).
-* **Firebase Firestore Database:** Base de datos NoSQL documental orientada a la protección por usuario.
+
+- **Firebase Authentication:** Gestión de sesiones segura en tiempo real (OAuth 2.0 con Google y Auth tradicional).
+- **Firebase Firestore Database:** Base de datos NoSQL documental orientada a la protección por usuario.
 
 ---
 
@@ -197,7 +178,7 @@ http://localhost:8000/docs
 ## 🗺️ Roadmap de Implementación
 
 - [x] Arquitectura de Monorepo y árbol de directorios limpio.
-- [x] Inicialización segura de Firebase SDK y variables VITE_.
+- [x] Inicialización segura de Firebase SDK y variables VITE\_.
 - [x] Motor global de Autenticación, persistencia e inyección de datos en Firestore.
 - [x] Enrutamiento protegido por cliente (ProtectedRoute) e interfaz Fintech responsiva.
 - [ ] Conexión del backend FastAPI con la lógica del servicio OCR.
