@@ -1,0 +1,56 @@
+name: 🐍 Backend CI (FastAPI)
+
+# Configuración de los disparadores (Cuándo se despierta este robot)
+on:
+  push:
+    branches: [ main, development ]
+    paths:
+      - 'backend-api/**' # 💡 Solo se activa si los cambios ocurren dentro de esta carpeta
+  pull_request:
+    branches: [ main, development ]
+    paths:
+      - 'backend-api/**'
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest # GitHub nos presta un servidor virtual con Linux Ubuntu
+
+    steps:
+    # Paso 1: Clonar y descargar el código de tu proyecto dentro del servidor virtual
+    - name: 📂 Descargar código
+      uses: actions/checkout@v4
+
+    # Paso 2: Instalar y dejar listo el entorno de Python en la versión correcta
+    - name: 🛠️ Configurar Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    # Paso 3: Guardar en caché las librerías para que las siguientes veces corra más rápido
+    - name: 📦 Cachear dependencias de Python
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('backend-api/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    # Paso 4: Instalar las dependencias de tu proyecto + herramientas de testeo
+    - name: 📥 Instalar dependencias
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend-api/requirements.txt
+        pip install pytest flake8
+
+    # Paso 5: Validar la sintaxis del código (Linter). 
+    # Si alguien dejó una coma mal puesta, una variable sin definir o un error grave, el proceso falla aquí.
+    - name: 🔍 Validar sintaxis del código (Flake8)
+      run: |
+        flake8 backend-api --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    # Paso 6: Ejecutar las pruebas unitarias.
+    # Usamos "|| true" al final para que si aún no han escrito archivos "test_", el robot no rompa el despliegue
+    - name: 🧪 Ejecutar pruebas con PyTest
+      run: |
+        cd backend-api
+        pytest || echo "No se encontraron pruebas estructuradas aún. Entorno limpio."

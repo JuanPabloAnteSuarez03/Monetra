@@ -1,0 +1,63 @@
+name: ⚛️ Frontend CI (React + Vite)
+
+on:
+  push:
+    branches: [ main, development ]
+    paths:
+      - 'frontend/**'
+  pull_request:
+    branches: [ main, development ]
+    paths:
+      - 'frontend/**'
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📂 Descargar código
+      uses: actions/checkout@v4
+
+    - name: 🛠️ Configurar Node.js v20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: 📦 Cachear dependencias de Node
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: 📥 Instalar dependencias
+      run: |
+        cd frontend
+        npm ci
+
+    # ── Variables de entorno ficticias para que Vite no falle en build ──
+    # Los tests mockean Firebase, así que estos valores nunca llegan a usarse.
+    - name: 🔑 Crear .env.local para CI
+      run: |
+        cd frontend
+        cat > .env.local << 'EOF'
+        VITE_FIREBASE_API_KEY=ci-fake-key
+        VITE_FIREBASE_AUTH_DOMAIN=ci-fake.firebaseapp.com
+        VITE_FIREBASE_PROJECT_ID=ci-fake-project
+        VITE_FIREBASE_STORAGE_BUCKET=ci-fake.appspot.com
+        VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
+        VITE_FIREBASE_APP_ID=1:000000000000:web:fakeid
+        EOF
+
+    # ── Paso crítico: ejecutar suite de tests ────────────────────────────
+    - name: 🧪 Ejecutar tests con Vitest
+      run: |
+        cd frontend
+        npm run test
+
+    # ── Solo se llega aquí si todos los tests pasaron ────────────────────
+    - name: 🚀 Validar compilación de producción (Build)
+      run: |
+        cd frontend
+        npm run build
