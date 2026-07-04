@@ -26,3 +26,8 @@ venv/
 Thumbs.db
 
 serviceAccountKey.json
+coverage.xml
+.coverage
+htmlcov/
+dist/
+*-firebase-adminsdk-*.json
