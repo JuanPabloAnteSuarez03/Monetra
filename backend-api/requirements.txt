@@ -1,6 +1,25 @@
-fastapi>=0.115.0
-uvicorn[standard]>=0.32.0
-python-dotenv>=1.0.1
-pytest>=8.0.0
-pytest-cov>=4.1.0
-httpx>=0.27.0
+# Web framework y validaciones
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic>=2.0.0
+
+# Variables de entorno
+python-dotenv==1.0.1
+
+# Google Gemini SDK & Motores de IA
+google-genai==1.14.0
+groq==1.4.0
+
+# Utilidades HTTP (para consumir APIs externas)
+httpx==0.28.1
+
+# OCR - procesamiento de imágenes
+Pillow==11.0.0
+
+# Base de datos y autenticación
+firebase-admin==7.4.0
+
+# herramientas de pruebas y asincronismo (Testing)
+pytest>=9.1.0
+pytest-asyncio>=0.23.0
+anyio>=4.0.0
