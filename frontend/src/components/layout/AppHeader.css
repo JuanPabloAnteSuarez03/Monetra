@@ -1,0 +1,150 @@
+/* AppHeader.css */
+
+/* Header */
+.dashboard-header {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.dashboard-header-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1a7a50;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: color 0.3s ease;
+}
+
+.header-btn:hover {
+  color: #4b5563;
+}
+
+.header-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Avatar button */
+.avatar-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a7a50;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.avatar-btn:hover {
+  opacity: 0.8;
+}
+
+/* Dropdown */
+.avatar-dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  margin-top: 0.5rem;
+  width: 15rem;
+  border-radius: 0.75rem;
+  background: white;
+  border: 1px solid #f3f4f6;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 50;
+}
+
+.dropdown-info {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.dropdown-info-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-info-email {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.125rem;
+}
+
+.dropdown-options {
+  padding: 0.375rem;
+}
+
+.dropdown-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #374151;
+  transition: background 0.3s ease;
+}
+
+.dropdown-btn:hover {
+  background: #f9fafb;
+}
+
+.dropdown-btn.logout {
+  color: #c0392b;
+  font-weight: 600;
+}
+
+.dropdown-btn svg {
+  width: 1rem;
+  height: 1rem;
+  color: #d1d5db;
+}
+
+.dropdown-btn.logout svg {
+  color: currentColor;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .dashboard-header {
+    padding: 1rem 1rem;
+  }
+}
