@@ -1,0 +1,247 @@
+.mv-container {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding-bottom: 7rem;
+}
+
+/* Header opcional por si vuelven a usarlo */
+.mv-header {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.mv-header h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a7a50;
+  /* Verde de Monetra */
+}
+
+/* Sección Buscador y Filtros */
+.mv-search-section {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.mv-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.mv-search-icon {
+  font-size: 1.1rem;
+  color: #64748b;
+}
+
+.mv-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.95rem;
+  color: #1e293b;
+  outline: none;
+}
+
+.mv-search-input::placeholder {
+  color: #94a3b8;
+}
+
+.mv-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mv-filter-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: white;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mv-filter-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.mv-filter-btn.active {
+  background: #1a7a50;
+  color: white;
+  border-color: #1a7a50;
+}
+
+.mv-category-dropdown {
+  margin-top: 0.75rem;
+}
+
+.mv-category-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  color: #1e293b;
+  font-size: 0.95rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.mv-category-select:focus {
+  border-color: #1a7a50;
+}
+
+/* Contenedor Principal */
+.mv-main {
+  max-width: 900px;
+  /* Ampliado para mejor visualización en escritorio */
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.mv-date-group {
+  margin-bottom: 1.5rem;
+}
+
+.mv-date-header {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+  padding-left: 0.25rem;
+}
+
+/* Banner éxito */
+.mv-success-banner {
+  max-width: 900px;
+  margin: 1rem auto 0;
+  background: #e9f8f0;
+  color: #1a7a50;
+  border: 1px solid #bde7cf;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  animation: fadeIn 0.25s ease;
+}
+
+/* Card de Movimiento */
+.movement-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  transition: all 0.25s ease;
+}
+
+.movement-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.movement-icon-wrapper {
+  flex-shrink: 0;
+}
+
+.movement-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.movement-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.movement-info h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.movement-info p {
+  margin: 0.25rem 0 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.movement-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.movement-amount-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+}
+
+.movement-amount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.movement-time {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Botones de acción dentro de la card (Compatibilidad con ambos nombres) */
+.movement-edit-btn,
+.movement-menu-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: #f1f5f9;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s ease;
+}
+
+.movement-edit-btn:hover,
+.movement-menu-btn:hover {
+  background: #e2e8f0;
+}
+
+.movement-edit-btn:active,
+.movement-menu-btn:active {
+  transform: scale(0.95);
+}
