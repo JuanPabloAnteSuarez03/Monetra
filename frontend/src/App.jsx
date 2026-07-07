@@ -5,6 +5,7 @@ import { LoginView } from "./views/auth/LoginView";
 import RegisterView from "./views/auth/RegisterView";
 import { DashboardView } from "./views/dashboard/DashboardView";
 import { MovimientosView } from "./views/movimientos/MovimientosView";
+import { SavingsView } from "./views/ahorros/SavingsView";
 
 function App() {
   return (
@@ -31,6 +32,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+            path="/ahorros"
+            element={
+              <ProtectedRoute>
+                <SavingsView />
+              </ProtectedRoute>
+            }
+          />
 
         {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/login" replace />} />
