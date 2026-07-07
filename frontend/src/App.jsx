@@ -6,6 +6,7 @@ import RegisterView from "./views/auth/RegisterView";
 import { DashboardView } from "./views/dashboard/DashboardView";
 import { MovimientosView } from "./views/movimientos/MovimientosView";
 import { SavingsView } from "./views/ahorros/SavingsView";
+import { Registro } from "./views/registro/Registro";
 
 function App() {
   return (
@@ -39,7 +40,15 @@ function App() {
                 <SavingsView />
               </ProtectedRoute>
             }
-          />
+        />
+        <Route
+          path="/registro"
+          element={
+            <ProtectedRoute>
+              <Registro />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/login" replace />} />
