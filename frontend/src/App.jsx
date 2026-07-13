@@ -6,7 +6,7 @@ import {
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ui/ProtectedRoute";
 import { LoginView } from "./views/auth/LoginView";
-import RegisterView from "./views/auth/RegisterView";
+import { RegisterView } from "./views/auth/RegisterView";
 
 function App() {
   return (
