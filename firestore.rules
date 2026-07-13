@@ -1,0 +1,46 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function estaAutenticado() {
+      return request.auth != null;
+    }
+
+    function esPropietario(userId) {
+      return estaAutenticado() && request.auth.uid == userId;
+    }
+
+    function movimientoValido(userId) {
+      return request.resource.data.uid == userId
+        && request.resource.data.tipo in ['ingreso', 'gasto', 'ahorro', 'deuda']
+        && request.resource.data.monto is number
+        && request.resource.data.monto > 0
+        && request.resource.data.categoria is string
+        && request.resource.data.categoria.size() > 0
+        && request.resource.data.fecha is timestamp
+        && request.resource.data.descripcion is string
+        && request.resource.data.moneda == 'COP'
+        && request.resource.data.origen == 'manual';
+    }
+
+    match /users/{userId} {
+      allow read: if esPropietario(userId);
+      allow create: if esPropietario(userId);
+      allow update: if esPropietario(userId);
+      allow delete: if false;
+
+      match /movements/{movementId} {
+        allow read: if esPropietario(userId);
+
+        allow create: if esPropietario(userId)
+          && movimientoValido(userId);
+
+        allow update: if esPropietario(userId)
+          && movimientoValido(userId);
+
+        allow delete: if esPropietario(userId);
+      }
+    }
+  }
+}
