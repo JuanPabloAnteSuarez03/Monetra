@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from services.ocr_service import extract_text_from_image
+from services.gemini_service import analyze_invoice_text
 
 
 router = APIRouter(prefix="/ocr", tags=["OCR"])
