@@ -22,6 +22,12 @@ def initialize_firebase_app():
     service_account_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
     project_id = os.getenv("FIREBASE_PROJECT_ID")
 
+    print(
+        f"FIREBASE INIT DEBUG: service_account_json presente={bool(service_account_json)} "
+        f"len={len(service_account_json) if service_account_json else 0} "
+        f"service_account_path={service_account_path!r} project_id={project_id!r}"
+    )
+
     try:
         if service_account_json:
             service_account_data = json.loads(service_account_json)
@@ -41,6 +47,7 @@ def initialize_firebase_app():
 
         return firebase_admin.initialize_app()
     except Exception as error:
+        print(f"FIREBASE INIT ERROR REAL: {type(error).__name__}: {error}")
         raise FirebaseServiceError(
             "No fue posible inicializar Firebase Admin. Revisa FIREBASE_SERVICE_ACCOUNT_PATH o FIREBASE_PROJECT_ID."
         ) from error
