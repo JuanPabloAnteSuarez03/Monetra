@@ -2,11 +2,12 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ui/ProtectedRoute";
 import { LoginView } from "./views/auth/LoginView";
-import RegisterView from "./views/auth/RegisterView";
+import { RegisterView } from "./views/auth/RegisterView";
 import { DashboardView } from "./views/dashboard/DashboardView";
 import { MovimientosView } from "./views/movimientos/MovimientosView";
 import { SavingsView } from "./views/ahorros/SavingsView";
 import { Registro } from "./views/registro/Registro";
+import { AnalisisView } from "./views/analisis/AnalisisView";
 
 function App() {
   return (
@@ -46,6 +47,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Registro />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analisis"
+          element={
+            <ProtectedRoute>
+              <AnalisisView />
             </ProtectedRoute>
           }
         />
