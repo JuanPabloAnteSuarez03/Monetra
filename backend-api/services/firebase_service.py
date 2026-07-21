@@ -28,6 +28,18 @@ def initialize_firebase_app():
         f"service_account_path={service_account_path!r} project_id={project_id!r}"
     )
 
+    if service_account_path:
+        exists = os.path.exists(service_account_path)
+        parent = os.path.dirname(service_account_path) or "."
+        try:
+            listing = os.listdir(parent)
+        except OSError as list_error:
+            listing = f"<no se pudo listar: {list_error}>"
+        print(
+            f"FIREBASE PATH DEBUG: exists={exists} parent_dir={parent!r} "
+            f"contenido_parent_dir={listing}"
+        )
+
     try:
         if service_account_json:
             service_account_data = json.loads(service_account_json)
