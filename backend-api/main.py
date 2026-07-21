@@ -7,6 +7,7 @@ load_dotenv()
 
 from routers.movements_router import router as movements_router
 from routers.savings_goals_router import router as savings_goals_router
+from routers.ocr_router import router as ocr_router
 
 app = FastAPI(
     title="Monetra App API",
@@ -24,6 +25,7 @@ app.add_middleware(
 
 app.include_router(movements_router,   prefix="/api/movements",     tags=["Movements"])
 app.include_router(savings_goals_router, prefix="/api/savings-goals", tags=["Savings Goals"])
+app.include_router(ocr_router) # ocr_router.py ya define prefix="/ocr" internamente
 
 @app.get("/health")
 async def health_check():

@@ -1,5 +1,5 @@
 // frontend/src/views/registro/Registro.jsx
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Registro.css';
 import { BottomNav } from '../../components/layout/BottomNav';
@@ -82,6 +82,22 @@ export const Registro = () => {
   const [error,       setError]      = useState('');
   const [ocrError,    setOcrError]   = useState('');
 
+  // ── Estado OCR en tiempo real (cámara) ──────────────────────────────
+  const videoRef        = useRef(null);
+  const captureCanvasRef = useRef(null);   // canvas oculto: captura a resolución completa
+  const stabilityCanvasRef = useRef(null); // canvas oculto: muestreo de baja resolución para detectar estabilidad
+  const streamRef       = useRef(null);
+  const stabilityTimerRef = useRef(null);
+  const prevFrameRef    = useRef(null);
+  const stableTicksRef  = useRef(0);
+  const ocrErrorRef     = useRef(''); // copia de ocrError legible sin esperar al re-render
+
+  const [showCamera,    setShowCamera]    = useState(false);
+  const [cameraPhase,   setCameraPhase]   = useState('live'); // 'live' | 'processing' | 'error'
+  const [cameraError,   setCameraError]   = useState('');
+  const [isStable,      setIsStable]      = useState(false);
+  const [facingMode,    setFacingMode]    = useState('environment'); // 'environment' | 'user'
+
   // ── Categorías visibles según el tipo de movimiento seleccionado ───
   const categoriasDisponibles =
     tipoMovimiento === 'ingreso' ? CATEGORIAS_INGRESO : CATEGORIAS_GASTO;
@@ -94,7 +110,27 @@ export const Registro = () => {
     if (error) setError('');
   };
 
-  // ── Escanear factura con OCR ───────────────────────────────────────
+  // ── Escanear factura con OCR (compartido: subida de archivo y cámara) ─
+  // Retorna true si se extrajo información correctamente.
+  const runOCR = async (file) => {
+    try {
+      const result = await scanInvoice(file);
+
+      if (!result.success || !result.data) {
+        setOcrError(result.message || 'No se pudo extraer información del documento.');
+        return false;
+      }
+
+      setOcrData(result.data);
+      setShowPreview(true);
+      return true;
+    } catch (err) {
+      setOcrError(err.message || 'Error al procesar la imagen.');
+      return false;
+    }
+  };
+
+  // ── Escanear factura subiendo una imagen desde el dispositivo ───────
   const handleFileSelect = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -103,24 +139,186 @@ export const Registro = () => {
 
     setOcrError('');
     setLoadingOCR(true);
+    await runOCR(file);
+    setLoadingOCR(false);
+  };
+
+  // ── Cámara en tiempo real ─────────────────────────────────────────
+  const STABILITY_CHECK_MS   = 150;  // frecuencia de muestreo
+  const STABILITY_THRESHOLD  = 6;    // diferencia promedio de píxel permitida (0-255)
+  const STABLE_TICKS_NEEDED  = 6;    // ~900ms quieto antes de auto-capturar
+
+  const stopStream = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const stopStabilityLoop = () => {
+    if (stabilityTimerRef.current) {
+      clearInterval(stabilityTimerRef.current);
+      stabilityTimerRef.current = null;
+    }
+    prevFrameRef.current = null;
+    stableTicksRef.current = 0;
+    setIsStable(false);
+  };
+
+  // Compara el frame actual con el anterior (a baja resolución) para
+  // saber si la cámara está quieta y así auto-capturar la factura.
+  const checkStability = useCallback(() => {
+    const video = videoRef.current;
+    const canvas = stabilityCanvasRef.current;
+    if (!video || !canvas || video.readyState < 2) return;
+
+    const w = 48, h = 36;
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, w, h);
+    const { data } = ctx.getImageData(0, 0, w, h);
+
+    if (prevFrameRef.current) {
+      let diffSum = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        diffSum += Math.abs(data[i] - prevFrameRef.current[i]);
+      }
+      const avgDiff = diffSum / (data.length / 4);
+
+      if (avgDiff < STABILITY_THRESHOLD) {
+        stableTicksRef.current += 1;
+      } else {
+        stableTicksRef.current = 0;
+        setIsStable(false);
+      }
+
+      if (stableTicksRef.current >= STABLE_TICKS_NEEDED) {
+        setIsStable(true);
+        stopStabilityLoop();
+        captureFrame();
+      }
+    }
+
+    prevFrameRef.current = data;
+  }, []);
+
+  const startStabilityLoop = () => {
+    stopStabilityLoop();
+    stabilityTimerRef.current = setInterval(checkStability, STABILITY_CHECK_MS);
+  };
+
+  const openCamera = async (mode = facingMode) => {
+    setCameraError('');
+    setOcrError('');
+    setCameraPhase('live');
+    setShowCamera(true);
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError('Este navegador no permite acceder a la cámara. Prueba subir una foto en su lugar.');
+      setCameraPhase('error');
+      return;
+    }
 
     try {
-      const result = await scanInvoice(file);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: mode } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      startStabilityLoop();
+    } catch (err) {
+      setCameraError(
+        err?.name === 'NotAllowedError'
+          ? 'Necesitamos permiso de cámara para escanear en vivo. Habilítalo en los ajustes del navegador.'
+          : 'No se pudo acceder a la cámara. Prueba subir una foto en su lugar.'
+      );
+      setCameraPhase('error');
+    }
+  };
 
-      if (!result.success || !result.data) {
-        setOcrError(result.message || 'No se pudo extraer información del documento.');
-        setLoadingOCR(false);
+  const closeCamera = () => {
+    stopStabilityLoop();
+    stopStream();
+    setShowCamera(false);
+    setCameraPhase('live');
+    setCameraError('');
+  };
+
+  const switchCamera = () => {
+    const next = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(next);
+    stopStabilityLoop();
+    stopStream();
+    openCamera(next);
+  };
+
+  // Toma el frame actual del video, lo convierte a archivo y lo procesa con OCR.
+  const captureFrame = () => {
+    const video = videoRef.current;
+    const canvas = captureCanvasRef.current;
+    if (!video || !canvas || video.readyState < 2) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        setCameraError('No se pudo capturar la imagen. Intenta de nuevo.');
+        setCameraPhase('error');
         return;
       }
 
-      setOcrData(result.data);
-      setShowPreview(true);
-    } catch (err) {
-      setOcrError(err.message || 'Error al procesar la imagen.');
-    } finally {
-      setLoadingOCR(false);
+      // Detenemos el análisis de estabilidad pero dejamos el stream activo
+      // por si el usuario necesita reintentar sin volver a pedir permisos.
+      stopStabilityLoop();
+      setCameraPhase('processing');
+      setOcrError('');
+
+      const file = new File([blob], `captura-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      const success = await runOCR(file);
+
+      if (success) {
+        closeCamera();
+      } else {
+        setCameraError(ocrErrorRef.current || 'No se pudo extraer información. Intenta de nuevo.');
+        setCameraPhase('error');
+      }
+    }, 'image/jpeg', 0.92);
+  };
+
+  const handleManualCapture = () => {
+    if (cameraPhase !== 'live') return;
+    stopStabilityLoop();
+    captureFrame();
+  };
+
+  const retryCamera = () => {
+    setCameraError('');
+    setCameraPhase('live');
+    if (streamRef.current) {
+      startStabilityLoop();
+    } else {
+      openCamera();
     }
   };
+
+  // Mantiene ocrErrorRef sincronizado para leerlo dentro de captureFrame
+  // sin depender del ciclo de renders de React.
+  useEffect(() => { ocrErrorRef.current = ocrError; }, [ocrError]);
+
+  // Limpieza al desmontar el componente: apaga la cámara si quedó abierta.
+  useEffect(() => {
+    return () => {
+      stopStabilityLoop();
+      stopStream();
+    };
+  }, []);
 
   // ── Aceptar datos del OCR y pre-llenar formulario ──────────────────
   const handleAcceptOCR = () => {
@@ -254,7 +452,7 @@ export const Registro = () => {
             />
           </div>
 
-          {/* Botón escanear */}
+          {/* Botones escanear */}
           <input
             ref={fileInputRef}
             type="file"
@@ -262,30 +460,44 @@ export const Registro = () => {
             style={{ display: 'none' }}
             onChange={handleFileSelect}
           />
-          <button
-            className="rg-scan-btn"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={loadingOCR}
-          >
-            {loadingOCR ? (
-              <>
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0114.6-3.6M20 15a9 9 0 01-14.6 3.6" />
-                </svg>
-                Procesando...
-              </>
-            ) : (
-              <>
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M9 3H5a2 2 0 00-2 2v4m0 6v4a2 2 0 002 2h4m6-18h4a2 2 0 012 2v4m0 6v4a2 2 0 01-2 2h-4" />
-                </svg>
-                Escanear factura (OCR)
-              </>
-            )}
-          </button>
+          <div className="rg-scan-actions">
+            <button
+              className="rg-scan-btn"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={loadingOCR}
+            >
+              {loadingOCR ? (
+                <>
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0114.6-3.6M20 15a9 9 0 01-14.6 3.6" />
+                  </svg>
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M9 3H5a2 2 0 00-2 2v4m0 6v4a2 2 0 002 2h4m6-18h4a2 2 0 012 2v4m0 6v4a2 2 0 01-2 2h-4" />
+                  </svg>
+                  Subir imagen
+                </>
+              )}
+            </button>
 
-          {ocrError && (
+            <button
+              className="rg-scan-btn rg-scan-btn--live"
+              onClick={() => openCamera()}
+              disabled={loadingOCR}
+            >
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <circle cx="12" cy="13" r="3.5" />
+              </svg>
+              Escanear en vivo
+            </button>
+          </div>
+
+          {ocrError && !showCamera && (
             <p className="rg-error" style={{ textAlign: 'center' }}>{ocrError}</p>
           )}
         </div>
@@ -432,6 +644,77 @@ export const Registro = () => {
               </svg>
               Aceptar gasto
             </button>
+
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal cámara en vivo ─────────────────────────────────────── */}
+      {showCamera && (
+        <div className="cam-overlay">
+          <div className="cam-modal">
+
+            <div className="cam-header">
+              <span className="cam-title">Escanear en vivo</span>
+              <div className="cam-header-actions">
+                {cameraPhase === 'live' && (
+                  <button className="cam-icon-btn" onClick={switchCamera} aria-label="Cambiar cámara">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0114.6-3.6M20 15a9 9 0 01-14.6 3.6" />
+                    </svg>
+                  </button>
+                )}
+                <button className="cam-icon-btn" onClick={closeCamera} aria-label="Cerrar cámara">×</button>
+              </div>
+            </div>
+
+            <div className="cam-video-wrap">
+              <video ref={videoRef} className="cam-video" muted playsInline />
+
+              {cameraPhase === 'live' && (
+                <div className={`cam-guide${isStable ? ' cam-guide--stable' : ''}`}>
+                  <span className="cam-corner cam-corner--tl" />
+                  <span className="cam-corner cam-corner--tr" />
+                  <span className="cam-corner cam-corner--bl" />
+                  <span className="cam-corner cam-corner--br" />
+                </div>
+              )}
+
+              {cameraPhase === 'processing' && (
+                <div className="cam-processing-overlay">
+                  <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0114.6-3.6M20 15a9 9 0 01-14.6 3.6" />
+                  </svg>
+                  <span>Extrayendo datos...</span>
+                </div>
+              )}
+
+              {cameraPhase === 'error' && (
+                <div className="cam-processing-overlay">
+                  <p className="cam-error-text">{cameraError}</p>
+                  <button className="cam-retry-btn" onClick={retryCamera}>Reintentar</button>
+                </div>
+              )}
+            </div>
+
+            <div className="cam-footer">
+              {cameraPhase === 'live' ? (
+                <>
+                  <p className="cam-hint">
+                    {isStable ? 'Capturando...' : 'Encuadra la factura y mantén el teléfono firme'}
+                  </p>
+                  <button className="cam-shutter-btn" onClick={handleManualCapture} aria-label="Capturar foto">
+                    <span className="cam-shutter-inner" />
+                  </button>
+                </>
+              ) : (
+                <p className="cam-hint">&nbsp;</p>
+              )}
+            </div>
+
+            {/* Canvas ocultos usados para capturar y para medir estabilidad */}
+            <canvas ref={captureCanvasRef} style={{ display: 'none' }} />
+            <canvas ref={stabilityCanvasRef} style={{ display: 'none' }} />
 
           </div>
         </div>
