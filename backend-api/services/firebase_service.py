@@ -1,5 +1,6 @@
 import json
 import os
+import threading
 from typing import Optional
 
 import firebase_admin
@@ -8,6 +9,8 @@ from fastapi import HTTPException, Request
 from firebase_admin import auth, credentials, firestore
 
 load_dotenv()
+
+_init_lock = threading.Lock()
 
 
 class FirebaseServiceError(Exception):
@@ -18,57 +21,40 @@ def initialize_firebase_app():
     if firebase_admin._apps:
         return firebase_admin.get_app()
 
-    service_account_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
-    service_account_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
-    project_id = os.getenv("FIREBASE_PROJECT_ID")
+    with _init_lock:
+        if firebase_admin._apps:
+            return firebase_admin.get_app()
 
-    print(
-        f"FIREBASE INIT DEBUG: service_account_json presente={bool(service_account_json)} "
-        f"len={len(service_account_json) if service_account_json else 0} "
-        f"service_account_path={service_account_path!r} project_id={project_id!r}"
-    )
+        service_account_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
+        service_account_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+        project_id = os.getenv("FIREBASE_PROJECT_ID")
 
-    if service_account_path:
-        exists = os.path.exists(service_account_path)
-        parent = os.path.dirname(service_account_path) or "."
         try:
-            listing = os.listdir(parent)
-        except OSError as list_error:
-            listing = f"<no se pudo listar: {list_error}>"
-        print(
-            f"FIREBASE PATH DEBUG: exists={exists} parent_dir={parent!r} "
-            f"contenido_parent_dir={listing}"
-        )
+            if service_account_json:
+                service_account_data = json.loads(service_account_json)
+                cred = credentials.Certificate(service_account_data)
+                return firebase_admin.initialize_app(
+                    cred, options={"projectId": cred.project_id or project_id}
+                )
 
-    try:
-        if service_account_json:
-            service_account_data = json.loads(service_account_json)
-            cred = credentials.Certificate(service_account_data)
-            print(f"FIREBASE CERT DEBUG: project_id={cred.project_id!r} email={cred.service_account_email!r}")
-            return firebase_admin.initialize_app(
-                cred, options={"projectId": cred.project_id or project_id}
-            )
+            if service_account_path and os.path.exists(service_account_path):
+                cred = credentials.Certificate(service_account_path)
+                return firebase_admin.initialize_app(
+                    cred, options={"projectId": cred.project_id or project_id}
+                )
 
-        if service_account_path and os.path.exists(service_account_path):
-            cred = credentials.Certificate(service_account_path)
-            print(f"FIREBASE CERT DEBUG: project_id={cred.project_id!r} email={cred.service_account_email!r}")
-            return firebase_admin.initialize_app(
-                cred, options={"projectId": cred.project_id or project_id}
-            )
+            if project_id:
+                return firebase_admin.initialize_app(
+                    options={
+                        "projectId": project_id,
+                    }
+                )
 
-        if project_id:
-            return firebase_admin.initialize_app(
-                options={
-                    "projectId": project_id,
-                }
-            )
-
-        return firebase_admin.initialize_app()
-    except Exception as error:
-        print(f"FIREBASE INIT ERROR REAL: {type(error).__name__}: {error}")
-        raise FirebaseServiceError(
-            "No fue posible inicializar Firebase Admin. Revisa FIREBASE_SERVICE_ACCOUNT_PATH o FIREBASE_PROJECT_ID."
-        ) from error
+            return firebase_admin.initialize_app()
+        except Exception as error:
+            raise FirebaseServiceError(
+                "No fue posible inicializar Firebase Admin. Revisa FIREBASE_SERVICE_ACCOUNT_PATH o FIREBASE_PROJECT_ID."
+            ) from error
 
 
 def get_firestore_client():
