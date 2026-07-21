@@ -32,11 +32,17 @@ def initialize_firebase_app():
         if service_account_json:
             service_account_data = json.loads(service_account_json)
             cred = credentials.Certificate(service_account_data)
-            return firebase_admin.initialize_app(cred)
+            print(f"FIREBASE CERT DEBUG: project_id={cred.project_id!r} email={cred.service_account_email!r}")
+            return firebase_admin.initialize_app(
+                cred, options={"projectId": cred.project_id or project_id}
+            )
 
         if service_account_path and os.path.exists(service_account_path):
             cred = credentials.Certificate(service_account_path)
-            return firebase_admin.initialize_app(cred)
+            print(f"FIREBASE CERT DEBUG: project_id={cred.project_id!r} email={cred.service_account_email!r}")
+            return firebase_admin.initialize_app(
+                cred, options={"projectId": cred.project_id or project_id}
+            )
 
         if project_id:
             return firebase_admin.initialize_app(
