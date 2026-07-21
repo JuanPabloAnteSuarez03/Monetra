@@ -197,6 +197,13 @@
   align-self: flex-start;
 }
 
+.rg-scan-actions {
+  display: flex;
+  gap: 0.625rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 .rg-scan-btn {
   display: flex;
   align-items: center;
@@ -213,6 +220,15 @@
 }
 
 .rg-scan-btn:hover { background: #d4ecdf; }
+.rg-scan-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.rg-scan-btn--live {
+  color: #0f766e;
+  background: #e6fbf8;
+  border-color: #99f2e6;
+}
+
+.rg-scan-btn--live:hover { background: #cdf6ef; }
 
 /* ─── Section ─────────────────────────────────────────────────────── */
 
@@ -670,4 +686,182 @@
   .ocr-amount { font-size: 1.2rem; }
   .occ-field-value { font-size: 0.875rem; }
 
+}
+
+/* ─── Cámara en vivo ──────────────────────────────────────────────── */
+
+.cam-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.cam-modal {
+  width: 100%;
+  height: 100%;
+  max-width: 480px;
+  max-height: 860px;
+  display: flex;
+  flex-direction: column;
+  background: #0b0f0d;
+  position: relative;
+}
+
+.cam-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  color: #f9fafb;
+  z-index: 2;
+}
+
+.cam-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.cam-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cam-icon-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: #f9fafb;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: background 0.2s;
+}
+
+.cam-icon-btn:hover { background: rgba(255, 255, 255, 0.22); }
+
+.cam-video-wrap {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cam-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Guía de encuadre con esquinas tipo escáner */
+
+.cam-guide {
+  position: absolute;
+  top: 14%;
+  left: 8%;
+  right: 8%;
+  bottom: 22%;
+  pointer-events: none;
+}
+
+.cam-corner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  transition: border-color 0.2s;
+}
+
+.cam-corner--tl { top: 0;    left: 0;  border-right: none;  border-bottom: none; border-radius: 6px 0 0 0; }
+.cam-corner--tr { top: 0;    right: 0; border-left: none;   border-bottom: none; border-radius: 0 6px 0 0; }
+.cam-corner--bl { bottom: 0; left: 0;  border-right: none;  border-top: none;    border-radius: 0 0 0 6px; }
+.cam-corner--br { bottom: 0; right: 0; border-left: none;   border-top: none;    border-radius: 0 0 6px 0; }
+
+.cam-guide--stable .cam-corner { border-color: #34d399; }
+
+.cam-processing-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #f9fafb;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.cam-error-text {
+  margin: 0;
+  color: #fecaca;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.cam-retry-btn {
+  background: #1a7a50;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cam-retry-btn:hover { opacity: 0.9; }
+
+.cam-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1rem 1.5rem;
+  z-index: 2;
+}
+
+.cam-hint {
+  margin: 0;
+  color: #e5e7eb;
+  font-size: 0.8125rem;
+  min-height: 1.1em;
+}
+
+.cam-shutter-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 3px solid #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s, background 0.2s;
+}
+
+.cam-shutter-btn:hover { background: rgba(255, 255, 255, 0.25); }
+.cam-shutter-btn:active { transform: scale(0.92); }
+
+.cam-shutter-inner {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #ffffff;
 }
